@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "chunkmem.h"
 
-typedef struct VM {
+typedef struct {
     size_t ip;
     size_t rb;
     bool halted;

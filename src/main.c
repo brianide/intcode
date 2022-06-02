@@ -19,9 +19,9 @@ typedef struct Program {
 
 int main(int argc, char** argv) {
     Program progs[] = {
-        { .name = "run",  .func = &run },
-        { .name = "day2", .func = &day2 },
-        { .name = "day2b", .func = &day2b }
+        { "run",   &run   },
+        { "day2",  &day2  },
+        { "day2b", &day2b }
     };
 
     for (size_t i = 0; i < sizeof(progs) / sizeof(Program); i++) {

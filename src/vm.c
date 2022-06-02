@@ -40,7 +40,7 @@ void vm_load(VM* vm, const char* filename) {
     fclose(f);
 }
 
-int64_t* param(VM* vm, size_t pos) {
+static int64_t* param(VM* vm, size_t pos) {
     int64_t mode = *mem_getPtr(&vm->mem, vm->ip) / 100;
     for (size_t i = 0; i < pos; i++)
         mode /= 10;

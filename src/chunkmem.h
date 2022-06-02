@@ -4,7 +4,7 @@
 
 #define MEMORY_CHUNK_SIZE 2048
 
-typedef struct ChunkMemory {
+typedef struct {
     size_t cursor;
     AssocArray chunks;
 } ChunkMemory;

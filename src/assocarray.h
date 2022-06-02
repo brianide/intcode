@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef struct AssocEntry {
+typedef struct {
     uint64_t key;
     void* data;
 } AssocEntry;
 
 typedef void (*AssocDataDestructor)(void*);
 
-typedef struct AssocArray {
+typedef struct {
     size_t capacity;
     size_t size;
     AssocDataDestructor destructor;
