@@ -1,0 +1,21 @@
+<project name="Intcode VM" default="test">
+
+<target name="clean">
+    <delete file="intcode"/>
+</target>
+
+<target name="compile">
+    <exec executable="clang" failonerror="true">
+        <arg line="-o intcode"/>
+        <arg line="--std=c99"/>
+        <arg line="-fsanitize=address"/>
+        <arg line="src/main.c src/assocarray.c src/chunkmem.c src/vm.c"/>
+    </exec>
+</target>
+
+<target name="test" depends="compile">
+    <exec executable="./intcode">
+    </exec>
+</target>
+
+</project>
