@@ -43,11 +43,11 @@ static int64_t unwrap(int64_t* ptr) {
     return val;
 }
 
-void vm_appendInput(VM* vm, int64_t value) {
+void vm_append_input(VM* vm, int64_t value) {
     queue_push(&vm->input, wrap(value));
 }
 
-bool vm_tryGetOutput(VM* vm, int64_t* out) {
+bool vm_try_get_output(VM* vm, int64_t* out) {
     int64_t* result;
     if (queue_try_remove(&vm->output, (void**) &result)) {
         *out = *result;
@@ -83,7 +83,7 @@ void vm_destroy_program(VMProgram* prog) {
 
 void vm_load(VM* vm, VMProgram* prog) {
     for (size_t i = 0; i < prog->length; i++)
-        *mem_getPtr(&vm->mem, i) = prog->data[i];
+        *mem_get_ptr(&vm->mem, i) = prog->data[i];
 }
 
 void vm_load_file(VM* vm, const char* file) {
@@ -93,20 +93,20 @@ void vm_load_file(VM* vm, const char* file) {
 }
 
 static int64_t* param(VM* vm, size_t pos) {
-    int64_t mode = *mem_getPtr(&vm->mem, vm->ip) / 100;
+    int64_t mode = *mem_get_ptr(&vm->mem, vm->ip) / 100;
     for (size_t i = 0; i < pos; i++)
         mode /= 10;
     mode %= 10;
 
-    int64_t* ptr = mem_getPtr(&vm->mem, vm->ip + 1 + pos);
+    int64_t* ptr = mem_get_ptr(&vm->mem, vm->ip + 1 + pos);
 
     switch (mode) {
         case MODE_POS:
-            return mem_getPtr(&vm->mem, *ptr);
+            return mem_get_ptr(&vm->mem, *ptr);
         case MODE_IMM:
             return ptr;
         case MODE_REL:
-            return mem_getPtr(&vm->mem, vm->rb + *ptr);
+            return mem_get_ptr(&vm->mem, vm->rb + *ptr);
         default:
             // TODO Error message
             exit(1);
@@ -114,7 +114,7 @@ static int64_t* param(VM* vm, size_t pos) {
 }
 
 void vm_step(VM* vm) {
-    int64_t inst = *mem_getPtr(&vm->mem, vm->ip) % 100;
+    int64_t inst = *mem_get_ptr(&vm->mem, vm->ip) % 100;
     int64_t* buffer;
     
     switch (inst) {
@@ -171,11 +171,17 @@ void vm_step(VM* vm) {
     }
 }
 
-uint64_t vm_runUntilHalt(VM* vm) {
+uint64_t vm_run_til_halt(VM* vm) {
     uint64_t cycles = 0;
     while (!vm->halted) {
         cycles++;
         vm_step(vm);
     }
     return cycles;
+}
+
+VMStopReason vm_run_til_halt_or_output(VM* vm) {
+    while (!vm->halted && vm->output.length == 0)
+        vm_step(vm);
+    return vm->halted ? VM_HALT : VM_OUTPUT;
 }

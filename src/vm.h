@@ -18,13 +18,22 @@ typedef struct {
     int64_t* data;
 } VMProgram;
 
+typedef enum {
+    VM_HALT,
+    VM_OUTPUT
+} VMStopReason;
+
 VM vm_create();
 void vm_destroy(VM* vm);
-void vm_appendInput(VM* vm, int64_t value);
-bool vm_tryGetOutput(VM* vm, int64_t* out);
+
+void vm_append_input(VM* vm, int64_t value);
+bool vm_try_get_output(VM* vm, int64_t* out);
+
 VMProgram vm_parse_program(const char* path);
 void vm_destroy_program(VMProgram* prog);
 void vm_load(VM* vm, VMProgram* program);
 void vm_load_file(VM* vm, const char* file);
+
 void vm_step(VM* vm);
-uint64_t vm_runUntilHalt(VM* vm);
+uint64_t vm_run_til_halt(VM* vm);
+VMStopReason vm_run_til_halt_or_output(VM* vm);
