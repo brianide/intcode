@@ -10,11 +10,11 @@ Queue queue_create() {
     return (Queue) { .length = 0, .head = NULL, .tail = NULL };
 }
 
-void queue_destroy(Queue* q, QueueDataDestructor destructor) {
+void queue_destroy(Queue* q, DataDisposer disposer) {
     QueueNode* curr = q->head;
     while (curr) {
-        if (destructor)
-            destructor(curr->data);
+        if (disposer)
+            disposer(curr->data);
         QueueNode* temp = curr;
         curr = curr->next;
         free(temp);

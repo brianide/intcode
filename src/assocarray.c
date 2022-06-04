@@ -11,14 +11,14 @@ AssocArray assoc_create() {
     };
 }
 
-void assoc_destroy(AssocArray* assoc, AssocDataDestructor destructor) {
-    if (destructor)
+void assoc_destroy(AssocArray* assoc, DataDisposer disposer) {
+    if (disposer)
         for (size_t i = 0; i < assoc->size; i++)
-            destructor(assoc->entries[i].data);
+            disposer(assoc->entries[i].data);
     free(assoc->entries);
 }
 
-void assoc_putAt(AssocArray* assoc, uint64_t key, void* data) {
+void assoc_put(AssocArray* assoc, uint64_t key, void* data) {
     if (assoc->size == assoc->capacity) {
         assoc->size *= ASSOC_GROW_FACTOR;
         assoc->entries = realloc(assoc->entries, assoc->capacity * sizeof(AssocEntry));

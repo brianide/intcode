@@ -4,7 +4,7 @@ int64_t* ensureChunk(ChunkMemory* mem, size_t chunkIndex) {
     int64_t* chunk = assoc_get(&mem->chunks, chunkIndex);
     if (!chunk) {
         chunk = calloc(MEMORY_CHUNK_SIZE, sizeof(int64_t));
-        assoc_putAt(&mem->chunks, chunkIndex, chunk);
+        assoc_put(&mem->chunks, chunkIndex, chunk);
     }
     return chunk;
 }

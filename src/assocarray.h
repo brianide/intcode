@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include "extras.h"
 
 typedef struct {
     uint64_t key;
@@ -14,11 +15,9 @@ typedef struct {
     AssocEntry* entries;
 } AssocArray;
 
-typedef void (*AssocDataDestructor)(void*);
-
 AssocArray assoc_create();
-void assoc_destroy(AssocArray* assoc, AssocDataDestructor destructor);
-void assoc_putAt(AssocArray* assoc, uint64_t key, void* data);
+void assoc_destroy(AssocArray* assoc, DataDisposer disposer);
+void assoc_put(AssocArray* assoc, uint64_t key, void* data);
 void* assoc_get(AssocArray* assoc, uint64_t key);
 AssocEntry* assoc_begin(AssocArray* assoc);
 AssocEntry* assoc_end(AssocArray* assoc);

@@ -16,11 +16,13 @@
 #define OP_ARB 9
 #define OP_HLT 99
 
+// LIFECYCLE //////////////////////////////////////////////////////////////////
+
 VM vm_create() {
     return (VM) {
         .ip = 0,
         .rb = 0,
-        .halted = false,
+        .state = VM_RUNNING,
         .mem = mem_create()
     };
 }
@@ -31,20 +33,11 @@ void vm_destroy(VM* vm) {
     queue_destroy(&vm->output, &free);
 }
 
-static int64_t* wrap(int64_t value) {
-    int64_t* ptr = malloc(sizeof(int64_t));
-    *ptr = value;
-    return ptr;
-}
-
-static int64_t unwrap(int64_t* ptr) {
-    int64_t val = *ptr;
-    free(ptr);
-    return val;
-}
+// INPUT/OUTPUT ///////////////////////////////////////////////////////////////
 
 void vm_append_input(VM* vm, int64_t value) {
-    queue_push(&vm->input, wrap(value));
+    //queue_push(&vm->input, wrap(value));
+    queue_push_value(&vm->input, value);
 }
 
 bool vm_try_get_output(VM* vm, int64_t* out) {
@@ -56,6 +49,16 @@ bool vm_try_get_output(VM* vm, int64_t* out) {
     }
     return false;
 }
+
+size_t vm_has_output(VM* vm) {
+    return vm->output.length;
+}
+
+int64_t vm_get_output(VM* vm) {
+    return queue_remove_value(&vm->output, int64_t);
+}
+
+// PROGRAM LOADING ////////////////////////////////////////////////////////////
 
 VMProgram vm_parse_program(const char* path) {
     size_t capacity = 1024;
@@ -92,6 +95,8 @@ void vm_load_file(VM* vm, const char* file) {
     vm_destroy_program(&prog);
 }
 
+// PROGRAM EXECUTION //////////////////////////////////////////////////////////
+
 static int64_t* param(VM* vm, size_t pos) {
     int64_t mode = *mem_get_ptr(&vm->mem, vm->ip) / 100;
     for (size_t i = 0; i < pos; i++)
@@ -127,14 +132,14 @@ void vm_step(VM* vm) {
             vm->ip += 4;
             break;
         case OP_INP:
-            if (queue_try_remove(&vm->input, (void**) &buffer))
-                *param(vm, 0) = unwrap(buffer);
+            if (vm->input.length > 0)
+                *param(vm, 0) = queue_remove_value(&vm->input, int64_t);
             else
                 *param(vm, 0) = -1;
             vm->ip += 2;
             break;
         case OP_OUT:
-            queue_push(&vm->output, wrap(*param(vm, 0)));
+            queue_push_value(&vm->output, *param(vm, 0));
             vm->ip += 2;
             break;
         case OP_JNZ:
@@ -162,7 +167,7 @@ void vm_step(VM* vm) {
             vm->ip += 2;
             break;
         case OP_HLT:
-            vm->halted = true;
+            vm->state = VM_HALTED;
             vm->ip += 1;
             break;
         default:
@@ -173,15 +178,15 @@ void vm_step(VM* vm) {
 
 uint64_t vm_run_til_halt(VM* vm) {
     uint64_t cycles = 0;
-    while (!vm->halted) {
+    while (vm->state == VM_RUNNING) {
         cycles++;
         vm_step(vm);
     }
     return cycles;
 }
 
-VMStopReason vm_run_til_halt_or_output(VM* vm) {
-    while (!vm->halted && vm->output.length == 0)
+VMState vm_run_til_event(VM* vm) {
+    while (vm->state == VM_RUNNING && vm->output.length == 0)
         vm_step(vm);
-    return vm->halted ? VM_HALT : VM_OUTPUT;
+    return vm->state;
 }

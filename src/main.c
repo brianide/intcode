@@ -14,13 +14,13 @@ void run(VMProgram prog) {
     vm_destroy(&vm);
 }
 
-typedef struct RunMode {
+typedef struct {
     const char* name;
     void (*func)(VMProgram);
     const char* desc;
 } RunMode;
 
-static const RunMode modes[] = {
+static const RunMode MODES[] = {
     { "run",   &run ,  "(default) Runs program normally; prints value at address 0" },
     { "day2",  &day2,  "Gravity Assist" },
     { "day2b", &day2b, "Parameter Modes" },
@@ -31,9 +31,9 @@ static const RunMode modes[] = {
 };
 
 const RunMode* find_mode(const char* name) {
-    for (size_t i = 0; i < sizeof(modes) / sizeof(RunMode); i++) {
-        if (strcmp(modes[i].name, name) == 0) {
-            return &modes[i];
+    for (size_t i = 0; i < sizeof(MODES) / sizeof(RunMode); i++) {
+        if (strcmp(MODES[i].name, name) == 0) {
+            return &MODES[i];
         }
     }
 
@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
     usage:
     fprintf(stderr, "Usage: %s file [mode]\n\n", argv[0]);
     fprintf(stderr, " MODE  DESCRIPTION\n");
-    for (size_t i = 0; i < sizeof(modes) / sizeof(RunMode); i++) {
-        fprintf(stderr, "%5s  %s\n", modes[i].name, modes[i].desc);
+    for (size_t i = 0; i < sizeof(MODES) / sizeof(RunMode); i++) {
+        fprintf(stderr, "%5s  %s\n", MODES[i].name, MODES[i].desc);
     }
     return 1;
 }
