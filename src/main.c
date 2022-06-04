@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vm.h"
-#include "day2.h"
+#include "days.h"
+
+#include "linkedqueue.h"
 
 void run(const char* filename) {
     VM vm = vm_create();
@@ -21,7 +23,9 @@ int main(int argc, char** argv) {
     Program progs[] = {
         { "run",   &run   },
         { "day2",  &day2  },
-        { "day2b", &day2b }
+        { "day2b", &day2b },
+        { "day5",  &day5  },
+        { "day5b", &day5b }
     };
 
     for (size_t i = 0; i < sizeof(progs) / sizeof(Program); i++) {

@@ -3,19 +3,18 @@
 #define ASSOC_DEFAULT_CAPACITY 8
 #define ASSOC_GROW_FACTOR 1.5
 
-AssocArray assoc_create(AssocDataDestructor destructor) {
+AssocArray assoc_create() {
     return (AssocArray) {
-        .destructor = destructor,
         .capacity = ASSOC_DEFAULT_CAPACITY,
         .size = 0,
         .entries = calloc(ASSOC_DEFAULT_CAPACITY, sizeof(AssocEntry))
     };
 }
 
-void assoc_destroy(AssocArray* assoc) {
-    if (assoc->destructor != NULL)
+void assoc_destroy(AssocArray* assoc, AssocDataDestructor destructor) {
+    if (destructor)
         for (size_t i = 0; i < assoc->size; i++)
-            assoc->destructor(assoc->entries[i].data);
+            destructor(assoc->entries[i].data);
     free(assoc->entries);
 }
 

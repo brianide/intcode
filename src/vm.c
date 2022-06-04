@@ -27,6 +27,34 @@ VM vm_create() {
 
 void vm_destroy(VM* vm) {
     mem_destroy(&vm->mem);
+    queue_destroy(&vm->input, &free);
+    queue_destroy(&vm->output, &free);
+}
+
+static int64_t* wrap(int64_t value) {
+    int64_t* ptr = malloc(sizeof(int64_t));
+    *ptr = value;
+    return ptr;
+}
+
+static int64_t unwrap(int64_t* ptr) {
+    int64_t val = *ptr;
+    free(ptr);
+    return val;
+}
+
+void vm_appendInput(VM* vm, int64_t value) {
+    queue_push(&vm->input, wrap(value));
+}
+
+bool vm_tryGetOutput(VM* vm, int64_t* out) {
+    int64_t* result;
+    if (queue_try_remove(&vm->output, (void**) &result)) {
+        *out = *result;
+        free(result);
+        return true;
+    }
+    return false;
 }
 
 void vm_load(VM* vm, const char* filename) {
@@ -63,6 +91,8 @@ static int64_t* param(VM* vm, size_t pos) {
 
 void vm_step(VM* vm) {
     int64_t inst = *mem_getPtr(&vm->mem, vm->ip) % 100;
+    int64_t* buffer;
+    
     switch (inst) {
         case OP_ADD:
             *param(vm, 2) = *param(vm, 0) + *param(vm, 1);
@@ -73,19 +103,27 @@ void vm_step(VM* vm) {
             vm->ip += 4;
             break;
         case OP_INP:
-            *param(vm, 0) = 0;
+            if (queue_try_remove(&vm->input, (void**) &buffer))
+                *param(vm, 0) = unwrap(buffer);
+            else
+                *param(vm, 0) = -1;
             vm->ip += 2;
             break;
         case OP_OUT:
+            queue_push(&vm->output, wrap(*param(vm, 0)));
             vm->ip += 2;
             break;
         case OP_JNZ:
-            if (*param(vm, 0) != 0) vm->ip = *param(vm, 1);
-            vm->ip += 3;
+            if (*param(vm, 0) != 0)
+                vm->ip = *param(vm, 1);
+            else
+                vm->ip += 3;
             break;
         case OP_JEZ:
-            if (*param(vm, 0) == 0) vm->ip = *param(vm, 1);
-            vm->ip += 3;
+            if (*param(vm, 0) == 0)
+                vm->ip = *param(vm, 1);
+            else
+                vm->ip += 3;
             break;
         case OP_TLT:
             *param(vm, 2) = *param(vm, 0) < *param(vm, 1) ? 1 : 0;

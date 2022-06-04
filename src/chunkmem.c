@@ -2,7 +2,7 @@
 
 int64_t* ensureChunk(ChunkMemory* mem, size_t chunkIndex) {
     int64_t* chunk = assoc_get(&mem->chunks, chunkIndex);
-    if (chunk == NULL) {
+    if (!chunk) {
         chunk = calloc(MEMORY_CHUNK_SIZE, sizeof(int64_t));
         assoc_putAt(&mem->chunks, chunkIndex, chunk);
     }
@@ -12,12 +12,12 @@ int64_t* ensureChunk(ChunkMemory* mem, size_t chunkIndex) {
 ChunkMemory mem_create() {
     return (ChunkMemory) {
         .cursor = 0,
-        .chunks = assoc_create(&free)
+        .chunks = assoc_create()
     };
 }
 
 void mem_destroy(ChunkMemory* mem) {
-    assoc_destroy(&mem->chunks);
+    assoc_destroy(&mem->chunks, &free);
 }
 
 int64_t* mem_getPtr(ChunkMemory* mem, size_t index) {

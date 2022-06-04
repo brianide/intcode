@@ -1,7 +1,6 @@
-#pragma once
-
 #include <stdio.h>
 #include "vm.h"
+#include "days.h"
 
 static int64_t runWith(const char* filename, int64_t noun, int64_t verb) {
     VM vm = vm_create();
