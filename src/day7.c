@@ -54,9 +54,45 @@ void day7(VMProgram prog) {
     }
 
     printf("%ld\n", maxsig);
-
     queue_destroy(&q, &free);
 }
 
 void day7b(VMProgram prog) {
+    int64_t vals[] = { 5, 6, 7, 8, 9 };
+    Queue q = queue_create();
+    permute(vals, 5, 5, &q);
+
+    int64_t* perm;
+    int64_t maxsig = 0;
+    while (queue_try_remove(&q, (void**) &perm)) {
+        // Initialize amps
+        VM amps[5];
+        for (size_t i = 0; i < 5; i++) {
+            amps[i] = vm_create();
+            vm_load(&amps[i], &prog);
+            vm_append_input(&amps[i], perm[i]);
+        }
+
+        size_t cycle = 0;
+        int64_t input_val = 0;
+        for (;;) {
+            VM* amp = &amps[cycle % 5];
+            vm_append_input(amp, input_val);
+            if (vm_run_til_event(amp) == VM_HALTED)
+                break;
+            vm_try_get_output(amp, &input_val);
+            cycle++;
+        }
+
+        // Cleanup amps
+        for (size_t i = 0; i < 5; i++) {
+            vm_destroy(&amps[i]);
+        }
+
+        free(perm);
+        maxsig = maxsig > input_val ? maxsig : input_val;
+    }
+
+    printf("%ld\n", maxsig);
+    queue_destroy(&q, &free);
 }
