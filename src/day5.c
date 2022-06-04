@@ -4,7 +4,7 @@
 
 void day5(const char* filename) {
     VM vm = vm_create();
-    vm_load(&vm, filename);
+    vm_load_file(&vm, filename);
     vm_appendInput(&vm, 1);
     vm_runUntilHalt(&vm);
     
@@ -19,7 +19,7 @@ void day5(const char* filename) {
 
 void day5b(const char* filename) {
     VM vm = vm_create();
-    vm_load(&vm, filename);
+    vm_load_file(&vm, filename);
     vm_appendInput(&vm, 5);
     vm_runUntilHalt(&vm);
     

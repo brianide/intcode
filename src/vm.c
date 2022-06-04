@@ -57,15 +57,39 @@ bool vm_tryGetOutput(VM* vm, int64_t* out) {
     return false;
 }
 
-void vm_load(VM* vm, const char* filename) {
-    FILE* f = fopen(filename, "r");
-    int64_t value;
+VMProgram vm_parse_program(const char* path) {
+    size_t capacity = 1024;
+    int64_t* buffer = calloc(capacity, sizeof(int64_t));
+    size_t cursor = 0;
 
-    vm->mem.cursor = 0;
+    FILE* f = fopen(path, "r");
+    int64_t value;
     while (!feof(f) && fscanf(f, "%ld,", &value) == 1) {
-        mem_append(&vm->mem, value);
+        if (cursor == capacity) {
+            capacity *= 1.5;
+            buffer = realloc(buffer, capacity * sizeof(int64_t));
+        }
+        buffer[cursor++] = value;
     }
     fclose(f);
+
+    buffer = realloc(buffer, cursor * sizeof(int64_t));
+    return (VMProgram) { .length = cursor, .data = buffer };
+}
+
+void vm_destroy_program(VMProgram* prog) {
+    free(prog->data);
+}
+
+void vm_load(VM* vm, VMProgram* prog) {
+    for (size_t i = 0; i < prog->length; i++)
+        *mem_getPtr(&vm->mem, i) = prog->data[i];
+}
+
+void vm_load_file(VM* vm, const char* file) {
+    VMProgram prog = vm_parse_program(file);
+    vm_load(vm, &prog);
+    vm_destroy_program(&prog);
 }
 
 static int64_t* param(VM* vm, size_t pos) {

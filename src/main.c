@@ -8,7 +8,7 @@
 
 void run(const char* filename) {
     VM vm = vm_create();
-    vm_load(&vm, filename);
+    vm_load_file(&vm, filename);
     vm_runUntilHalt(&vm);
     printf("%lu\n", *mem_getPtr(&vm.mem, 0));
     vm_destroy(&vm);
