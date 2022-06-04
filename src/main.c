@@ -17,24 +17,42 @@ void run(const char* filename) {
 typedef struct Program {
     const char* name;
     void (*func)(const char*);
+    const char* desc;
 } Program;
 
+static const Program progs[] = {
+    { "run",   &run ,  "(default) Runs program normally; prints value at address 0" },
+    { "day2",  &day2,  "Gravity Assist" },
+    { "day2b", &day2b, "Parameter Modes" },
+    { "day5",  &day5,  "TEST" },
+    { "day5b", &day5b, "Jumps and Comparisons" },
+    { "day7",  &day7,  "Amplification Circuit" }
+};
+
 int main(int argc, char** argv) {
-    Program progs[] = {
-        { "run",   &run   },
-        { "day2",  &day2  },
-        { "day2b", &day2b },
-        { "day5",  &day5  },
-        { "day5b", &day5b }
-    };
+    if (argc < 2 || argc > 3)
+        goto usage;
+
+    const char* file = argv[1];
+
+    if (argc == 2) {
+        run(file);
+        return 0;
+    }
 
     for (size_t i = 0; i < sizeof(progs) / sizeof(Program); i++) {
-        if (strcmp(progs[i].name, argv[1]) == 0) {
-            progs[i].func(argv[2]);
+        if (strcmp(progs[i].name, argv[2]) == 0) {
+            progs[i].func(file);
             return 0;
         }
     }
 
-    // TODO Print usage or something
+    usage:
+    fprintf(stderr, "Usage: %s file [mode]\n\n", argv[0]);
+    fprintf(stderr, " MODE  DESCRIPTION\n");
+    for (size_t i = 0; i < sizeof(progs) / sizeof(Program); i++) {
+        fprintf(stderr, "%5s  %s\n", progs[i].name, progs[i].desc);
+    }
+
     return 1;
 }

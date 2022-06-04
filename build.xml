@@ -4,12 +4,20 @@
     <delete file="intcode"/>
 </target>
 
+<pathconvert property="src.files" pathsep=" ">
+    <path>
+        <fileset dir="src">
+            <include name="**/*.c"/>
+        </fileset>
+    </path>
+</pathconvert>
+
 <target name="compile">
     <exec executable="clang" failonerror="true">
         <arg line="-o intcode"/>
         <arg line="--std=gnu17"/>
         <arg line="-fsanitize=address"/>
-        <arg line="src/main.c src/assocarray.c src/chunkmem.c src/vm.c src/linkedqueue.c src/day2.c src/day5.c"/>
+        <arg line="${src.files}"/>
     </exec>
 </target>
 
