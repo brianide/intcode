@@ -85,8 +85,9 @@ void vm_destroy_program(VMProgram* prog) {
 }
 
 void vm_load(VM* vm, VMProgram* prog) {
-    for (size_t i = 0; i < prog->length; i++)
+    for (size_t i = 0; i < prog->length; i++) {
         *mem_get_ptr(&vm->mem, i) = prog->data[i];
+    }
 }
 
 void vm_load_file(VM* vm, const char* file) {

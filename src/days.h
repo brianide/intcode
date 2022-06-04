@@ -8,3 +8,6 @@ void day5(VMProgram prog);
 void day5b(VMProgram prog);
 void day7(VMProgram prog);
 void day7b(VMProgram prog);
+void day9(VMProgram prog);
+void day9b(VMProgram prog);
+void disas(VMProgram prog);

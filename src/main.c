@@ -10,6 +10,18 @@ void run(VMProgram prog) {
     VM vm = vm_create();
     vm_load(&vm, &prog);
     vm_run_til_halt(&vm);
+    if (vm_has_output(&vm)) {
+        printf("OUT: ");
+        for (;;) {
+            printf("%lu", vm_get_output(&vm));
+            if (!vm_has_output(&vm)) {
+                printf("\n");
+                break;
+            }
+            else
+                printf(",");
+        }
+    }
     printf("%lu\n", *mem_get_ptr(&vm.mem, 0));
     vm_destroy(&vm);
 }
@@ -21,13 +33,16 @@ typedef struct {
 } RunMode;
 
 static const RunMode MODES[] = {
-    { "run",   &run ,  "(default) Runs program normally; prints value at address 0" },
-    { "day2",  &day2,  "Gravity Assist" },
-    { "day2b", &day2b, "Parameter Modes" },
-    { "day5",  &day5,  "T.E.S.T." },
-    { "day5b", &day5b, "Jumps and Comparisons" },
-    { "day7",  &day7,  "Amplification Circuit" },
-    { "day7b", &day7b, "Feedback Loop" }
+    { "run",   &run,  "(default) Runs program normally; prints outputs and [0]"  },
+    { "disas", &disas, "Disassembler"                                            },
+    { "day2",  &day2,  "Gravity Assist"                                          },
+    { "day2b", &day2b, "Parameter Modes"                                         },
+    { "day5",  &day5,  "T.E.S.T."                                                },
+    { "day5b", &day5b, "Jumps and Comparisons"                                   },
+    { "day7",  &day7,  "Amplification Circuit"                                   },
+    { "day7b", &day7b, "Feedback Loop"                                           },
+    { "day9",  &day9,  "Sensor Boost"                                            },
+    { "day9b", &day9b, "???"                                                     }
 };
 
 const RunMode* find_mode(const char* name) {
