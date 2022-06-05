@@ -36,7 +36,6 @@ void vm_destroy(VM* vm) {
 // INPUT/OUTPUT ///////////////////////////////////////////////////////////////
 
 void vm_append_input(VM* vm, int64_t value) {
-    //queue_push(&vm->input, wrap(value));
     queue_push_value(&vm->input, value);
 }
 
@@ -114,8 +113,8 @@ static int64_t* param(VM* vm, size_t pos) {
         case MODE_REL:
             return mem_get_ptr(&vm->mem, vm->rb + *ptr);
         default:
-            // TODO Error message
-            exit(1);
+            vm->state = VM_ERROR;
+            return NULL;
     }
 }
 
@@ -172,8 +171,8 @@ void vm_step(VM* vm) {
             vm->ip += 1;
             break;
         default:
-            // TODO Error message
-            exit(1);
+            vm->state = VM_ERROR;
+            break;
     }
 }
 
@@ -190,4 +189,44 @@ VMState vm_run_til_event(VM* vm) {
     while (vm->state == VM_RUNNING && vm->output.length == 0)
         vm_step(vm);
     return vm->state;
+}
+
+// Misc
+
+void vm_dump_state(VM* vm) {
+    // Print registers
+    printf("IP: %zu   RB: %zu\n", vm->ip, vm->rb);
+
+    // Print output queue
+    printf("OUT: ");
+    QueueNode* tail = vm->output.tail;
+    if (tail) {
+        for (;;) {
+            printf("%ld", *(int64_t*) tail->data);
+            tail = tail->prev;
+
+            if (!tail) {
+                printf("\n");
+                break;
+            }
+            else
+                printf(",");
+        }
+    }
+    else
+        printf("(empty)\n");
+
+    // Print current chunk
+    int64_t* chunkptr = mem_get_ptr(&vm->mem, vm->ip / MEMORY_CHUNK_SIZE * MEMORY_CHUNK_SIZE);
+    for (size_t i = 0; i < MEMORY_CHUNK_SIZE; i++) {
+        if (i == vm->ip % MEMORY_CHUNK_SIZE)
+            printf("[%ld]", chunkptr[i]);
+        else
+            printf("%ld", chunkptr[i]);
+
+        if (i + 1 < MEMORY_CHUNK_SIZE)
+            printf(" ");
+        else
+            printf("\n");
+    }
 }

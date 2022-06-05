@@ -16,7 +16,7 @@ static int64_t runWith(VMProgram* prog, int64_t noun, int64_t verb) {
 }
 
 void day2(VMProgram prog) {
-    printf("%lu\n", runWith(&prog, 12, 2));
+    printf("%ld\n", runWith(&prog, 12, 2));
 }
 
 void day2b(VMProgram prog) {
@@ -33,5 +33,5 @@ void day2b(VMProgram prog) {
     }
     end:
     
-    printf("%lu\n", 100 * noun + verb);
+    printf("%ld\n", 100 * noun + verb);
 }

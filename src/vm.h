@@ -44,3 +44,6 @@ void vm_load_file(VM* vm, const char* file);
 void vm_step(VM* vm);
 uint64_t vm_run_til_halt(VM* vm);
 VMState vm_run_til_event(VM* vm);
+
+// Misc
+void vm_dump_state(VM* vm);

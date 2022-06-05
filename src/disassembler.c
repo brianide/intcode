@@ -95,11 +95,11 @@ void disas(VMProgram prog) {
         // Print label, if necessary
         for (size_t l = 0; l < label_index; l++) {
             if (labels[l] == inst.position) {
-                printf("label%zu\n", l);
+                printf("label%zu:\n", l);
             }
         }
 
-        printf("%8zd: %s  ", inst.position, inst.opcode->name);
+        printf("%8zd  %s  ", inst.position, inst.opcode->name);
 
         for (size_t a = 0; a < inst.opcode->num_operands; a++) {
             if (a == 1 && (inst.opcode->id == 5 || inst.opcode->id == 6) && inst.operand_modes[a] == MODE_IMM) {

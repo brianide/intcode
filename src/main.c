@@ -13,7 +13,7 @@ void run(VMProgram prog) {
     if (vm_has_output(&vm)) {
         printf("OUT: ");
         for (;;) {
-            printf("%lu", vm_get_output(&vm));
+            printf("%ld", vm_get_output(&vm));
             if (!vm_has_output(&vm)) {
                 printf("\n");
                 break;
@@ -22,7 +22,7 @@ void run(VMProgram prog) {
                 printf(",");
         }
     }
-    printf("%lu\n", *mem_get_ptr(&vm.mem, 0));
+    printf("%ld\n", *mem_get_ptr(&vm.mem, 0));
     vm_destroy(&vm);
 }
 
