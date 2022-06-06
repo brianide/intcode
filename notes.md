@@ -1,3 +1,7 @@
+## Input/Output
+
+* A function is provided to run the VM until output becomes available and/or input is about to be requested. This allows external devices (like the hull-painting robot) to interface with the program.
+
 ## Memory
 
 * VM memory consists of an associative array of "chunks", which are int64_t arrays of a certain size

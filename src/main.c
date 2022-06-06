@@ -33,16 +33,18 @@ typedef struct {
 } RunMode;
 
 static const RunMode MODES[] = {
-    { "run",   &run,  "(default) Runs program normally; prints outputs and [0]"  },
-    { "disas", &disas, "Disassembler"                                            },
-    { "day2",  &day2,  "Gravity Assist"                                          },
-    { "day2b", &day2b, "Parameter Modes"                                         },
-    { "day5",  &day5,  "T.E.S.T."                                                },
-    { "day5b", &day5b, "Jumps and Comparisons"                                   },
-    { "day7",  &day7,  "Amplification Circuit"                                   },
-    { "day7b", &day7b, "Feedback Loop"                                           },
-    { "day9",  &day9,  "Sensor Boost"                                            },
-    { "day9b", &day9b, "???"                                                     }
+    { "run",    &run,    "(default) Runs program normally; prints outputs and [0]" },
+    { "disas",  &disas,  "Disassembler"                                            },
+    { "day2",   &day2,   "Gravity Assist"                                          },
+    { "day2b",  &day2b,  "Parameter Modes"                                         },
+    { "day5",   &day5,   "T.E.S.T."                                                },
+    { "day5b",  &day5b,  "Jumps and Comparisons"                                   },
+    { "day7",   &day7,   "Amplification Circuit"                                   },
+    { "day7b",  &day7b,  "Feedback Loop"                                           },
+    { "day9",   &day9,   "Sensor Boost"                                            },
+    { "day9b",  &day9b,  "Feature Completion"                                      },
+    { "day11",  &day11,  "Hull Painting Robot"                                     },
+    { "day11b", &day11b, "Big Picture"                                             }
 };
 
 const RunMode* find_mode(const char* name) {
@@ -74,6 +76,7 @@ int main(int argc, char** argv) {
             return 0;
         }
     }
+    vm_destroy_program(&prog);
 
     usage:
     fprintf(stderr, "Usage: %s file [mode]\n\n", argv[0]);
@@ -81,5 +84,6 @@ int main(int argc, char** argv) {
     for (size_t i = 0; i < sizeof(MODES) / sizeof(RunMode); i++) {
         fprintf(stderr, "%5s  %s\n", MODES[i].name, MODES[i].desc);
     }
+
     return 1;
 }

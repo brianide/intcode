@@ -185,10 +185,23 @@ uint64_t vm_run_til_halt(VM* vm) {
     return cycles;
 }
 
-VMState vm_run_til_event(VM* vm) {
-    while (vm->state == VM_RUNNING && vm->output.length == 0)
+VMState vm_run_til_event(VM* vm, uint8_t flags) {
+    for (;;) {
+        if (vm->state != VM_RUNNING)
+            break;
+        if (flags & VM_WAIT_INPUT && vm_awaiting_input(vm))
+            break;
+        if (flags & VM_WAIT_OUTPUT && vm_has_output(vm))
+            break;
+
         vm_step(vm);
+    }
+
     return vm->state;
+}
+
+bool vm_awaiting_input(VM* vm) {
+    return vm->state == VM_RUNNING && !vm->input.length && *mem_get_ptr(&vm->mem, vm->ip) % 10 == OP_INP;
 }
 
 // Misc

@@ -8,7 +8,7 @@ static void runWith(VMProgram prog, int64_t input) {
     VM vm = vm_create();
     vm_load(&vm, &prog);
     vm_append_input(&vm, input);
-    vm_run_til_event(&vm);
+    vm_run_til_event(&vm, VM_WAIT_OUTPUT);
     printf("%ld\n", vm_get_output(&vm));
     vm_destroy(&vm);
 }

@@ -4,6 +4,9 @@
 #include "chunkmem.h"
 #include "linkedqueue.h"
 
+#define VM_WAIT_INPUT  0b01
+#define VM_WAIT_OUTPUT 0b10
+
 typedef enum {
     VM_RUNNING,
     VM_HALTED,
@@ -43,7 +46,8 @@ void vm_load_file(VM* vm, const char* file);
 // Program Execution
 void vm_step(VM* vm);
 uint64_t vm_run_til_halt(VM* vm);
-VMState vm_run_til_event(VM* vm);
+VMState vm_run_til_event(VM* vm, uint8_t flags);
+bool vm_awaiting_input(VM* vm);
 
 // Misc
 void vm_dump_state(VM* vm);
