@@ -61,31 +61,31 @@ static uint64_t runWith(PanelState hull[GRID_SIZE][GRID_SIZE], VM* vm) {
         }
 
         if (vm_awaiting_input(vm)) {
-            vm_append_input(vm, hull[bot.x][bot.y] == WHITE ? 1 : 0);
+            vm_push_input(vm, hull[bot.x][bot.y] == WHITE ? 1 : 0);
         }
     }
 
     return painted;
 }
 
-void day11(VMProgram prog) {
-    VM vm = vm_create();
-    vm_load(&vm, &prog);
+void day11(VMProgram* prog) {
+    VM* vm = vm_create();
+    vm_load(vm, prog);
     PanelState hull[GRID_SIZE][GRID_SIZE] = { UNPAINTED };
 
-    uint64_t painted = runWith(hull, &vm);
+    uint64_t painted = runWith(hull, vm);
     printf("%lu\n", painted);
     
-    vm_destroy(&vm);
+    vm_destroy(vm);
 }
 
-void day11b(VMProgram prog) {
-    VM vm = vm_create();
-    vm_load(&vm, &prog);
+void day11b(VMProgram* prog) {
+    VM* vm = vm_create();
+    vm_load(vm, prog);
     PanelState hull[GRID_SIZE][GRID_SIZE] = { UNPAINTED };
     hull[GRID_SIZE / 2][GRID_SIZE / 2] = WHITE;
 
-    runWith(hull, &vm);
+    runWith(hull, vm);
 
     size_t minx = SIZE_MAX, maxx = 0, miny = SIZE_MAX, maxy = 0;
 
@@ -107,5 +107,5 @@ void day11b(VMProgram prog) {
         printf("\n");
     }
 
-    vm_destroy(&vm);
+    vm_destroy(vm);
 }

@@ -6,15 +6,15 @@
 
 #include "linkedqueue.h"
 
-void run(VMProgram prog) {
-    VM vm = vm_create();
-    vm_load(&vm, &prog);
-    vm_run_til_halt(&vm);
-    if (vm_has_output(&vm)) {
+void run(VMProgram* prog) {
+    VM* vm = vm_create();
+    vm_load(vm, prog);
+    vm_run_til_halt(vm);
+    if (vm_has_output(vm)) {
         printf("OUT: ");
         for (;;) {
-            printf("%ld", vm_get_output(&vm));
-            if (!vm_has_output(&vm)) {
+            printf("%ld", vm_get_output(vm));
+            if (!vm_has_output(vm)) {
                 printf("\n");
                 break;
             }
@@ -22,13 +22,13 @@ void run(VMProgram prog) {
                 printf(",");
         }
     }
-    printf("%ld\n", *mem_get_ptr(&vm.mem, 0));
-    vm_destroy(&vm);
+    printf("%ld\n", *mem_get_ptr(&vm->mem, 0));
+    vm_destroy(vm);
 }
 
 typedef struct {
     const char* name;
-    void (*func)(VMProgram);
+    void (*func)(VMProgram* prog);
     const char* desc;
 } RunMode;
 
@@ -63,22 +63,22 @@ int main(int argc, char** argv) {
     if (argc < 2 || argc > 3)
         goto usage;
 
-    VMProgram prog = vm_parse_program(argv[1]);
+    VMProgram* prog = vm_parse_program(argv[1]);
 
     if (argc == 2) {
         run(prog);
-        vm_destroy_program(&prog);
+        vm_destroy_program(prog);
         return 0;
     }
     else {
         const RunMode* mode = find_mode(argv[2]);
         if (mode) {
             mode->func(prog);
-            vm_destroy_program(&prog);
+            vm_destroy_program(prog);
             return 0;
         }
     }
-    vm_destroy_program(&prog);
+    vm_destroy_program(prog);
 
     usage:
     fprintf(stderr, "Usage: %s file [mode]\n\n", argv[0]);

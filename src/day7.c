@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-
 #include "days.h"
+#include "linkedqueue.h"
 
 static int64_t factorial(int64_t num) {
     int64_t total = 1;
@@ -31,7 +31,7 @@ static void permute(int64_t* array, size_t n, size_t size, Queue* q) {
     }
 }
 
-void day7(VMProgram prog) {
+void day7(VMProgram* prog) {
     int64_t vals[] = { 0, 1, 2, 3, 4 };
     Queue q = queue_create();
     permute(vals, 5, 5, &q);
@@ -41,13 +41,13 @@ void day7(VMProgram prog) {
     while (queue_try_remove(&q, (void**) &perm)) {
         int64_t input_val = 0;
         for (size_t i = 0; i < 5; i++) {
-            VM vm = vm_create();
-            vm_load(&vm, &prog);
-            vm_append_input(&vm, perm[i]);
-            vm_append_input(&vm, input_val);
-            vm_run_til_halt(&vm);
-            vm_try_get_output(&vm, &input_val);
-            vm_destroy(&vm);
+            VM* vm = vm_create();
+            vm_load(vm, prog);
+            vm_push_input(vm, perm[i]);
+            vm_push_input(vm, input_val);
+            vm_run_til_halt(vm);
+            vm_try_get_output(vm, &input_val);
+            vm_destroy(vm);
         }
         free(perm);
         maxsig = maxsig > input_val ? maxsig : input_val;
@@ -57,7 +57,7 @@ void day7(VMProgram prog) {
     queue_destroy(&q, &free);
 }
 
-void day7b(VMProgram prog) {
+void day7b(VMProgram* prog) {
     int64_t vals[] = { 5, 6, 7, 8, 9 };
     Queue q = queue_create();
     permute(vals, 5, 5, &q);
@@ -66,18 +66,18 @@ void day7b(VMProgram prog) {
     int64_t maxsig = 0;
     while (queue_try_remove(&q, (void**) &perm)) {
         // Initialize amps
-        VM amps[5];
+        VM* amps[5];
         for (size_t i = 0; i < 5; i++) {
             amps[i] = vm_create();
-            vm_load(&amps[i], &prog);
-            vm_append_input(&amps[i], perm[i]);
+            vm_load(amps[i], prog);
+            vm_push_input(amps[i], perm[i]);
         }
 
         size_t cycle = 0;
         int64_t input_val = 0;
         for (;;) {
-            VM* amp = &amps[cycle % 5];
-            vm_append_input(amp, input_val);
+            VM* amp = amps[cycle % 5];
+            vm_push_input(amp, input_val);
             if (vm_run_til_event(amp, VM_WAIT_OUTPUT) == VM_HALTED)
                 break;
             vm_try_get_output(amp, &input_val);
@@ -86,7 +86,7 @@ void day7b(VMProgram prog) {
 
         // Cleanup amps
         for (size_t i = 0; i < 5; i++) {
-            vm_destroy(&amps[i]);
+            vm_destroy(amps[i]);
         }
 
         free(perm);

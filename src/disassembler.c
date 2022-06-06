@@ -42,16 +42,16 @@ const Opcode* find_opcode(int64_t inst) {
     return &OPCODES[0];
 }
 
-void disas(VMProgram prog) {
-    Instruction* insts = calloc(prog.length, sizeof(Instruction));
+void disas(VMProgram* prog) {
+    Instruction* insts = calloc(prog->length, sizeof(Instruction));
     size_t inst_index = 0;
 
-    size_t* labels = calloc(prog.length, sizeof(size_t));
+    size_t* labels = calloc(prog->length, sizeof(size_t));
     size_t label_index = 0;
 
     size_t cursor = 0;
-    while (cursor < prog.length) {
-        int64_t val = prog.data[cursor];
+    while (cursor < prog->length) {
+        int64_t val = prog->data[cursor];
         int64_t modes = val / 100;
 
         Instruction inst;
@@ -64,7 +64,7 @@ void disas(VMProgram prog) {
         }
         else {
             for (size_t i = 0; i < inst.opcode->num_operands; i++) {
-                inst.operands[i] = prog.data[cursor + 1 + i];
+                inst.operands[i] = prog->data[cursor + 1 + i];
                 inst.operand_modes[i] = modes % 10;
                 modes /= 10;
             }

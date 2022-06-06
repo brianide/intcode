@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stddef.h>
+#include <string.h>
 #include "vm.h"
 
 #define MODE_POS 0
@@ -18,48 +20,67 @@
 
 // LIFECYCLE //////////////////////////////////////////////////////////////////
 
-VM vm_create() {
-    return (VM) {
-        .ip = 0,
-        .rb = 0,
+VM* vm_create() {
+    VM* vm = malloc(sizeof(VM));
+    *vm = (VM) {
         .state = VM_RUNNING,
         .mem = mem_create()
     };
+    return vm;
 }
 
 void vm_destroy(VM* vm) {
     mem_destroy(&vm->mem);
-    queue_destroy(&vm->input, &free);
-    queue_destroy(&vm->output, &free);
+    free(vm);
 }
 
 // INPUT/OUTPUT ///////////////////////////////////////////////////////////////
 
-void vm_append_input(VM* vm, int64_t value) {
-    queue_push_value(&vm->input, value);
+static bool queue_add(IntQueue* queue, int64_t value) {
+    if (queue->available == VM_QUEUE_MAX)
+        return false;
+
+    queue->buffer[queue->write] = value;
+    queue->write = (queue->write + 1) % VM_QUEUE_MAX;
+    queue->available++;
+    return true;
+}
+
+static int64_t queue_remove(IntQueue* queue, bool* outcome) {
+    if (outcome)
+        *outcome = queue->available;
+
+    if (!queue->available) {
+        return -1;
+    }
+    
+    const int64_t res = queue->buffer[queue->read];
+    queue->read = (queue->read + 1) % VM_QUEUE_MAX;
+    queue->available--;
+    return res;
+}
+
+bool vm_push_input(VM* vm, int64_t value) {
+    return queue_add(&vm->input, value);
 }
 
 bool vm_try_get_output(VM* vm, int64_t* out) {
-    int64_t* result;
-    if (queue_try_remove(&vm->output, (void**) &result)) {
-        *out = *result;
-        free(result);
-        return true;
-    }
-    return false;
+    bool outcome;
+    *out = queue_remove(&vm->output, &outcome);
+    return outcome;
 }
 
 size_t vm_has_output(VM* vm) {
-    return vm->output.length;
+    return vm->output.available;
 }
 
 int64_t vm_get_output(VM* vm) {
-    return queue_remove_value(&vm->output, int64_t);
+    return queue_remove(&vm->output, NULL);
 }
 
 // PROGRAM LOADING ////////////////////////////////////////////////////////////
 
-VMProgram vm_parse_program(const char* path) {
+VMProgram* vm_parse_program(const char* path) {
     size_t capacity = 1024;
     int64_t* buffer = calloc(capacity, sizeof(int64_t));
     size_t cursor = 0;
@@ -75,12 +96,18 @@ VMProgram vm_parse_program(const char* path) {
     }
     fclose(f);
 
-    buffer = realloc(buffer, cursor * sizeof(int64_t));
-    return (VMProgram) { .length = cursor, .data = buffer };
+    const size_t data_offset = offsetof(VMProgram, data);
+    const size_t prog_size = sizeof(int64_t) * cursor;
+    VMProgram* prog = malloc(data_offset + sizeof(int64_t) * cursor);
+    prog->length = cursor;
+    memcpy((void*) prog + data_offset, buffer, prog_size);
+
+    free(buffer);
+    return prog;
 }
 
 void vm_destroy_program(VMProgram* prog) {
-    free(prog->data);
+    free(prog);
 }
 
 void vm_load(VM* vm, VMProgram* prog) {
@@ -90,12 +117,16 @@ void vm_load(VM* vm, VMProgram* prog) {
 }
 
 void vm_load_file(VM* vm, const char* file) {
-    VMProgram prog = vm_parse_program(file);
-    vm_load(vm, &prog);
-    vm_destroy_program(&prog);
+    VMProgram* prog = vm_parse_program(file);
+    vm_load(vm, prog);
+    vm_destroy_program(prog);
 }
 
 // PROGRAM EXECUTION //////////////////////////////////////////////////////////
+
+static inline int64_t next_inst(VM* vm) {
+    return *mem_get_ptr(&vm->mem, vm->ip) % 100;
+}
 
 static int64_t* param(VM* vm, size_t pos) {
     int64_t mode = *mem_get_ptr(&vm->mem, vm->ip) / 100;
@@ -113,13 +144,13 @@ static int64_t* param(VM* vm, size_t pos) {
         case MODE_REL:
             return mem_get_ptr(&vm->mem, vm->rb + *ptr);
         default:
-            vm->state = VM_ERROR;
-            return NULL;
+            vm->state = VM_INVALID_MODE;
+            return mem_get_ptr(&vm->mem, 0);
     }
 }
 
 void vm_step(VM* vm) {
-    int64_t inst = *mem_get_ptr(&vm->mem, vm->ip) % 100;
+    int64_t inst = next_inst(vm);
     int64_t* buffer;
     
     switch (inst) {
@@ -132,15 +163,14 @@ void vm_step(VM* vm) {
             vm->ip += 4;
             break;
         case OP_INP:
-            if (vm->input.length > 0)
-                *param(vm, 0) = queue_remove_value(&vm->input, int64_t);
-            else
-                *param(vm, 0) = -1;
+            *param(vm, 0) = queue_remove(&vm->input, NULL);
             vm->ip += 2;
             break;
         case OP_OUT:
-            queue_push_value(&vm->output, *param(vm, 0));
-            vm->ip += 2;
+            if (!queue_add(&vm->output, *param(vm, 0)))
+                vm->state = VM_QUEUE_OVERFLOW;
+            else
+                vm->ip += 2;
             break;
         case OP_JNZ:
             if (*param(vm, 0) != 0)
@@ -168,10 +198,9 @@ void vm_step(VM* vm) {
             break;
         case OP_HLT:
             vm->state = VM_HALTED;
-            vm->ip += 1;
             break;
         default:
-            vm->state = VM_ERROR;
+            vm->state = VM_INVALID_INSTRUCTION;
             break;
     }
 }
@@ -201,7 +230,7 @@ VMState vm_run_til_event(VM* vm, uint8_t flags) {
 }
 
 bool vm_awaiting_input(VM* vm) {
-    return vm->state == VM_RUNNING && !vm->input.length && *mem_get_ptr(&vm->mem, vm->ip) % 10 == OP_INP;
+    return vm->state == VM_RUNNING && !vm->input.available && next_inst(vm) == OP_INP;
 }
 
 // Misc
@@ -212,13 +241,12 @@ void vm_dump_state(VM* vm) {
 
     // Print output queue
     printf("OUT: ");
-    QueueNode* tail = vm->output.tail;
-    if (tail) {
-        for (;;) {
-            printf("%ld", *(int64_t*) tail->data);
-            tail = tail->prev;
+    const IntQueue queue = vm->output;
+    if (queue.available) {
+        for (size_t i = 0; i < queue.available; i++) {
+            printf("%ld", queue.buffer[(queue.read + i) % VM_QUEUE_MAX]);
 
-            if (!tail) {
+            if (i + 1 == queue.available) {
                 printf("\n");
                 break;
             }
