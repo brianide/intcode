@@ -14,10 +14,18 @@
 
 <target name="compile">
     <exec executable="clang" failonerror="true">
-        <arg line="-o intcode"/>
-        <arg line="--std=gnu17"/>
-        <arg line="-fsanitize=address"/>
         <arg line="${src.files}"/>
+        
+        <arg line="-o intcode"/>
+        <arg line="-std=gnu17"/>
+        <arg line="-fsanitize=address"/>
+
+        <arg value="-lraylib"/>
+        <arg value="-lGL"/>
+        <arg value="-lopenal"/>
+        <arg value="-lm"/>
+        <arg value="-ldl"/>
+        <arg value="-lpthread"/>
     </exec>
 </target>
 

@@ -11,3 +11,7 @@
 ## Misc.
 
 * Build is an Ant script because I'm too lazy to refresh myself on CMake at the moment
+
+## Day 13
+
+* 388: X coord, 389: Y coord, 390: X vel, 391: Y vel, 392: paddle X
