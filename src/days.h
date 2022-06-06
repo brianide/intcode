@@ -12,4 +12,6 @@ void day9(VMProgram prog);
 void day9b(VMProgram prog);
 void day11(VMProgram prog);
 void day11b(VMProgram prog);
+void day13(VMProgram prog);
+void day13b(VMProgram prog);
 void disas(VMProgram prog);

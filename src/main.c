@@ -44,7 +44,9 @@ static const RunMode MODES[] = {
     { "day9",   &day9,   "Sensor Boost"                                            },
     { "day9b",  &day9b,  "Feature Completion"                                      },
     { "day11",  &day11,  "Hull Painting Robot"                                     },
-    { "day11b", &day11b, "Big Picture"                                             }
+    { "day11b", &day11b, "Big Picture"                                             },
+    { "day13",  &day13,  "Care Package"                                            },
+    { "day13b", &day13b, "Breakout"                                                }
 };
 
 const RunMode* find_mode(const char* name) {
