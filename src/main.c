@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vm.h"
-#include "days.h"
+#include "modes.h"
 
 #include "linkedqueue.h"
 
@@ -46,7 +46,8 @@ static const RunMode MODES[] = {
     { "day11",  &day11,  "Hull Painting Robot"                                     },
     { "day11b", &day11b, "Big Picture"                                             },
     { "day13",  &day13,  "Care Package"                                            },
-    { "day13b", &day13b, "Breakout (Graphical)"                                    }
+    { "day13b", &day13b, "Breakout"                                                },
+    { "day13v", &day13v, "Breakout (visual)"                                    }
 };
 
 const RunMode* find_mode(const char* name) {
@@ -82,9 +83,9 @@ int main(int argc, char** argv) {
 
     usage:
     fprintf(stderr, "Usage: %s file [mode]\n\n", argv[0]);
-    fprintf(stderr, " MODE  DESCRIPTION\n");
+    fprintf(stderr, "  MODE  DESCRIPTION\n");
     for (size_t i = 0; i < sizeof(MODES) / sizeof(RunMode); i++) {
-        fprintf(stderr, "%5s  %s\n", MODES[i].name, MODES[i].desc);
+        fprintf(stderr, "%6s  %s\n", MODES[i].name, MODES[i].desc);
     }
 
     return 1;

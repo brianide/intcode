@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "days.h"
+#include "modes.h"
 
 void day5(VMProgram* prog) {
     VM* vm = vm_create();

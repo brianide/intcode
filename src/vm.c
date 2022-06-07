@@ -30,6 +30,9 @@ VM* vm_create() {
 }
 
 void vm_destroy(VM* vm) {
+    if (vm->state >= VM_ERROR)
+        fprintf(stderr, "##VM ERROR: %d; IP: %zu; RB: %zu ##\n", vm->state, vm->ip, vm->rb);
+        
     mem_destroy(&vm->mem);
     free(vm);
 }
@@ -76,6 +79,10 @@ size_t vm_has_output(VM* vm) {
 
 int64_t vm_get_output(VM* vm) {
     return queue_remove(&vm->output, NULL);
+}
+
+bool vm_output_full(VM* vm) {
+    return vm->output.available == VM_QUEUE_MAX;
 }
 
 // PROGRAM LOADING ////////////////////////////////////////////////////////////
@@ -218,9 +225,11 @@ VMState vm_run_til_event(VM* vm, uint8_t flags) {
     for (;;) {
         if (vm->state != VM_RUNNING)
             break;
-        if (flags & VM_WAIT_INPUT && vm_awaiting_input(vm))
+        if (flags & VM_WAIT_BLOCK_INPUT && vm_awaiting_input(vm))
             break;
-        if (flags & VM_WAIT_OUTPUT && vm_has_output(vm))
+        if (flags & VM_WAIT_ANY_OUTPUT && vm_has_output(vm))
+            break;
+        if (flags & VM_WAIT_FULL_OUTPUT && vm_output_full(vm) && next_inst(vm) == OP_OUT)
             break;
 
         vm_step(vm);

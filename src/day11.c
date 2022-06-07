@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "days.h"
+#include "modes.h"
 
 typedef enum {
     UNPAINTED,
@@ -36,7 +36,7 @@ static uint64_t runWith(PanelState hull[GRID_SIZE][GRID_SIZE], VM* vm) {
     uint64_t painted = 0;
 
     for (;;) {
-        if (vm_run_til_event(vm, VM_WAIT_INPUT | VM_WAIT_OUTPUT) == VM_HALTED) {
+        if (vm_run_til_event(vm, VM_WAIT_BLOCK_INPUT | VM_WAIT_ANY_OUTPUT) == VM_HALTED) {
             break;
         }
     

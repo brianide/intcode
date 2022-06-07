@@ -3,10 +3,11 @@
 #include <stdbool.h>
 #include "chunkmem.h"
 
-#define VM_QUEUE_MAX 16
+#define VM_QUEUE_MAX 32
 
-#define VM_WAIT_INPUT  0b01
-#define VM_WAIT_OUTPUT 0b10
+#define VM_WAIT_BLOCK_INPUT 0b001
+#define VM_WAIT_ANY_OUTPUT  0b010
+#define VM_WAIT_FULL_OUTPUT 0b100
 
 typedef enum {
     VM_RUNNING,
@@ -47,6 +48,7 @@ bool vm_push_input(VM* vm, int64_t value);
 bool vm_try_get_output(VM* vm, int64_t* out);
 size_t vm_has_output(VM* vm);
 int64_t vm_get_output(VM* vm);
+bool vm_output_full(VM* vm);
 
 // Program Loading
 VMProgram* vm_parse_program(const char* path);

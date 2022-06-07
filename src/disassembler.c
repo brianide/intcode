@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "days.h"
+#include "modes.h"
 
 typedef struct {
     uint32_t id;

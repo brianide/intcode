@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "days.h"
+#include "modes.h"
 #include "linkedqueue.h"
 
 static int64_t factorial(int64_t num) {
@@ -78,7 +78,7 @@ void day7b(VMProgram* prog) {
         for (;;) {
             VM* amp = amps[cycle % 5];
             vm_push_input(amp, input_val);
-            if (vm_run_til_event(amp, VM_WAIT_OUTPUT) == VM_HALTED)
+            if (vm_run_til_event(amp, VM_WAIT_ANY_OUTPUT) == VM_HALTED)
                 break;
             vm_try_get_output(amp, &input_val);
             cycle++;

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "days.h"
+#include "modes.h"
 
 static int64_t runWith(VMProgram* prog, int64_t noun, int64_t verb) {
     VM* vm = vm_create();
