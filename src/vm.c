@@ -33,7 +33,7 @@ void vm_destroy(VM* vm) {
     if (vm->state >= VM_ERROR)
         fprintf(stderr, "##VM ERROR: %d; IP: %zu; RB: %zu ##\n", vm->state, vm->ip, vm->rb);
         
-    mem_destroy(&vm->mem);
+    mem_destroy(vm->mem);
     free(vm);
 }
 
@@ -278,5 +278,16 @@ void vm_dump_state(VM* vm) {
             printf(" ");
         else
             printf("\n");
+    }
+}
+
+const char* vm_state_name(VMState state) {
+    switch (state) {
+        case VM_RUNNING: return "RUNNING";
+        case VM_HALTED: return "HALTED";
+        case VM_ERROR: return "ERROR";
+        case VM_QUEUE_OVERFLOW: return "QUEUE OVERFLOW";
+        case VM_INVALID_MODE: return "INVALID MODE";
+        case VM_INVALID_INSTRUCTION: return "INVALID INSTRUCTION";
     }
 }

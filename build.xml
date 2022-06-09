@@ -1,7 +1,8 @@
-<project name="Intcode VM" default="test">
+<project name="Intcode VM" default="all">
 
 <target name="clean">
     <delete file="intcode"/>
+    <delete file="intvm.so"/>
 </target>
 
 <pathconvert property="src.files" pathsep=" ">
@@ -29,9 +30,18 @@
     </exec>
 </target>
 
-<target name="test" depends="compile">
-    <exec executable="./intcode">
+<target name="library">
+    <exec executable="clang" failonerror="true">
+        <arg line="src/vm.c src/chunkmem.c src/arraylist.c"/>
+        
+        <arg value="-shared"/>
+        <arg value="-fPIC"/>
+        <arg line="-o intvm.so"/>
+        <arg value="-std=gnu17"/>
     </exec>
+</target>
+
+<target name="all" depends="clean,compile,library">
 </target>
 
 </project>

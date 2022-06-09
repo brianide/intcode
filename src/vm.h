@@ -29,7 +29,7 @@ typedef struct {
     size_t ip;
     size_t rb;
     VMState state;
-    ChunkMemory mem;
+    ChunkMemory* mem;
     IntQueue input;
     IntQueue output;
 } VM;
@@ -64,3 +64,4 @@ bool vm_awaiting_input(VM* vm);
 
 // Misc
 void vm_dump_state(VM* vm);
+const char* vm_state_name(VMState state);

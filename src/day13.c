@@ -11,11 +11,10 @@ typedef enum {
     BALL  
 } TileType;
 
-#define GRID_WIDTH 40
-#define GRID_HEIGHT 21
-
 #define BLOCK_SIZE 6
-#define DRAW_OFFSET 30
+#define DRAW_OFFSET 40
+
+#define INPUTS_PER_FRAME 2
 
 #define ADDR_BALL_X 388
 #define ADDR_BALL_VEL 390
@@ -42,6 +41,7 @@ static RunResult run(VMProgram* prog, const size_t grid_width, const size_t grid
 
     int64_t score = 0;
     uint64_t count = 0;
+    uint64_t frame_counter = 0;
 
     // Load program and tweak address
     VM* vm = vm_create();
@@ -49,17 +49,16 @@ static RunResult run(VMProgram* prog, const size_t grid_width, const size_t grid
     
     // Setup for drawing
     if (render) {
-        const int width = GRID_WIDTH * BLOCK_SIZE;
-        const int height = GRID_HEIGHT * BLOCK_SIZE + DRAW_OFFSET;
+        const int width = grid_width * BLOCK_SIZE;
+        const int height = grid_height * BLOCK_SIZE + DRAW_OFFSET;
         SetTraceLogLevel(LOG_FATAL);
         InitWindow(width, height, "intcode");
         SetTargetFPS(60);
     }
 
-    while (!render || !WindowShouldClose()) {
+    while (!render && vm->state == VM_RUNNING || !WindowShouldClose()) {
 
-        if (vm_run_til_event(vm, VM_WAIT_BLOCK_INPUT | VM_WAIT_FULL_OUTPUT) >= VM_ERROR)
-            break;
+        vm_run_til_event(vm, VM_WAIT_BLOCK_INPUT | VM_WAIT_FULL_OUTPUT);
 
         // If an input is available, take it and also grab the next two
         while (vm_has_output(vm) >= 3) {
@@ -81,11 +80,8 @@ static RunResult run(VMProgram* prog, const size_t grid_width, const size_t grid
             }
         }
 
-        if (vm->state != VM_RUNNING)
-            break;
-
-        // Don't draw until an input frame occurs
-        if (!vm_awaiting_input(vm))
+        // Keep running until the VM requests an input
+        if (vm->state == VM_RUNNING && !vm_awaiting_input(vm))
             continue;
 
         // Cheat
@@ -96,7 +92,8 @@ static RunResult run(VMProgram* prog, const size_t grid_width, const size_t grid
         const int64_t input = ballx > paddlex ? 1 : ballx < paddlex ? -1 : 0;
         vm_push_input(vm, input);
 
-        if (!render)
+        // Limit how often we render relative to how frequently input is polled
+        if (!render || frame_counter++ % INPUTS_PER_FRAME)
             continue;
 
         BeginDrawing();
@@ -107,14 +104,20 @@ static RunResult run(VMProgram* prog, const size_t grid_width, const size_t grid
         DrawText(TextFormat("%ld %ld %ld", ballx, ballvel, paddlex), 3, 13, 10, RED);
 
         // Draw grid cells
-        for (size_t y = 0; y < GRID_HEIGHT; y++) {
-            for (size_t x = 0; x < GRID_WIDTH; x++) {
+        for (size_t y = 0; y < grid_height; y++) {
+            for (size_t x = 0; x < grid_width; x++) {
                 TileType tile = grid[y][x];
                 if (tile != EMPTY) {
                     DrawRectangle(x * (BLOCK_SIZE), DRAW_OFFSET + y * (BLOCK_SIZE), BLOCK_SIZE, BLOCK_SIZE, get_color_for(tile));
                 }
             }
         }
+
+        // Draw state if the VM has stopped
+        if (vm->state != VM_RUNNING) {
+            DrawText(vm_state_name(vm->state), 3, 23, 10, RED);
+        }
+
         EndDrawing();
     }
 
